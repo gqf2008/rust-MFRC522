@@ -9,25 +9,25 @@
 //! WARNING: It conflicts with Spidev implementation so only one of
 //! `spidev` `i2cdev` features may be selected.
 
-use i2cdev::core::I2CDevice;
-
 use bus;
 use bus::MFRC522Bus;
-
+use embedded_hal::blocking::i2c::{Write, WriteRead};
 use pcd::reg::Reg;
+const ADDR: u8 = 0x28;
 
-impl<B: I2CDevice> MFRC522Bus for B {
-	#[inline]
-	fn register_read(&mut self, reg: Reg) -> bus::Result<u8> {
-		let value = try_map_err!(self.smbus_read_byte_data(reg as u8), ());
+impl<I2C: WriteRead + Write> MFRC522Bus for I2C {
+    #[inline]
+    fn register_read(&mut self, reg: Reg) -> bus::Result<u8> {
+        let mut buffer = [0];
+        self.write_read(ADDR, &[reg as u8], &mut buffer)
+            .map_err(|_x| ())?;
 
-		Ok(value)
-	}
+        Ok(buffer[0])
+    }
 
-	#[inline]
-	fn register_write(&mut self, reg: Reg, value: u8) -> bus::Result<()> {
-		try_map_err!(self.smbus_write_byte_data(reg as u8, value), ());
-
-		Ok(())
-	}
+    #[inline]
+    fn register_write(&mut self, reg: Reg, value: u8) -> bus::Result<()> {
+        self.write(ADDR, &[reg as u8, value]).map_err(|_x| ())?;
+        Ok(())
+    }
 }

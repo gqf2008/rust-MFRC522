@@ -8,45 +8,38 @@
 //! WARNING: It conflicts with I2CDevice implementation so only one of
 //! `spidev` `i2cdev` features may be selected.
 
-use std::io::Read;
-use std::io::Write;
-
-use spidev::Spidev;
-
 use bus;
 use bus::MFRC522Bus;
+use embedded_hal::spi::FullDuplex;
 
 use pcd::reg::Reg;
 
-impl MFRC522Bus for Spidev {
-	#[inline]
-	fn register_read(&mut self, reg: Reg) -> bus::Result<u8> {
-		let reg_addr = bus::spi_reg_addr(reg, bus::Mode::Read);
-		let mut rx_buf: [u8; 1] = [0];
-		try_map_err!(self.write(&[reg_addr]), ());
-		try_map_err!(self.read(&mut rx_buf), ());
-		ntrace!("{:?}/{:02x} -> {:?}", reg, reg_addr, rx_buf);
+impl<SPI: FullDuplex<u8>> MFRC522Bus for SPI {
+    #[inline]
+    fn register_read(&mut self, reg: Reg) -> bus::Result<u8> {
+        let reg_addr = bus::spi_reg_addr(reg, bus::Mode::Read);
+        self.send(reg_addr).map_err(|_x| ())?;
+        let value = self.read().map_err(|_x| ())?;
+        Ok(value)
+    }
 
-		Ok(rx_buf[0])
-	}
+    #[inline]
+    fn register_write(&mut self, reg: Reg, value: u8) -> bus::Result<()> {
+        let reg_addr = bus::spi_reg_addr(reg, bus::Mode::Write);
+        self.send(reg_addr).map_err(|_x| ())?;
+        self.send(value).map_err(|_x| ())?;
+        Ok(())
+    }
 
-	#[inline]
-	fn register_write(&mut self, reg: Reg, value: u8) -> bus::Result<()> {
-		let reg_addr = bus::spi_reg_addr(reg, bus::Mode::Write);
-		ntrace!("{:?}/{:02x} <- {:02x}", reg, reg_addr, value);
-		try_map_err!(self.write(&[reg_addr, value]), ());
+    fn register_write_slice(&mut self, reg: Reg, values: &[u8]) -> bus::MultiResult<usize> {
+        let reg_addr = bus::spi_reg_addr(reg, bus::Mode::Write);
+        let mut nwrite = 0;
+        self.send(reg_addr).map_err(|_x| nwrite)?;
+        for value in values.iter() {
+            self.send(*value).map_err(|_x| nwrite)?;
+            nwrite += 1;
+        }
 
-		Ok(())
-	}
-
-	fn register_write_slice(&mut self, reg: Reg, values: &[u8]) -> bus::MultiResult<usize> {
-		let reg_addr = bus::spi_reg_addr(reg, bus::Mode::Write);
-		let mut tx_buf = Vec::with_capacity(values.len() + 1);
-		tx_buf.push(reg_addr);
-		tx_buf.extend_from_slice(values);
-		let nwrit = try_map_err!(self.write(tx_buf.as_slice()), 0usize);
-		ntrace!("{:?}/{:02x} <- |{}/{}| {:?}", reg, reg_addr, nwrit, tx_buf.len(), &tx_buf.as_slice()[1..]);
-
-		Ok(nwrit)
-	}
+        Ok(nwrite)
+    }
 }

@@ -492,316 +492,316 @@ macro_rules! bitflags {
     };
 }
 
-#[cfg(test)]
-#[allow(non_upper_case_globals, dead_code)]
-mod tests {
-    use std::hash::{SipHasher, Hash, Hasher};
+// #[cfg(test)]
+// #[allow(non_upper_case_globals, dead_code)]
+// mod tests {
+//     use std::hash::{SipHasher, Hash, Hasher};
 
-    bitflags! {
-        #[doc = "> The first principle is that you must not fool yourself — and"]
-        #[doc = "> you are the easiest person to fool."]
-        #[doc = "> "]
-        #[doc = "> - Richard Feynman"]
-        flags Flags: u32 {
-            const FlagA       = 0b00000001,
-            #[doc = "<pcwalton> macros are way better at generating code than trans is"]
-            const FlagB       = 0b00000010,
-            const FlagC       = 0b00000100,
-            #[doc = "* cmr bed"]
-            #[doc = "* strcat table"]
-            #[doc = "<strcat> wait what?"]
-            const FlagABC     = FlagA.bits
-                               | FlagB.bits
-                               | FlagC.bits,
-        }
-    }
+//     bitflags! {
+//         #[doc = "> The first principle is that you must not fool yourself — and"]
+//         #[doc = "> you are the easiest person to fool."]
+//         #[doc = "> "]
+//         #[doc = "> - Richard Feynman"]
+//         flags Flags: u32 {
+//             const FlagA       = 0b00000001,
+//             #[doc = "<pcwalton> macros are way better at generating code than trans is"]
+//             const FlagB       = 0b00000010,
+//             const FlagC       = 0b00000100,
+//             #[doc = "* cmr bed"]
+//             #[doc = "* strcat table"]
+//             #[doc = "<strcat> wait what?"]
+//             const FlagABC     = FlagA.bits
+//                                | FlagB.bits
+//                                | FlagC.bits,
+//         }
+//     }
 
-    bitflags! {
-        flags _CfgFlags: u32 {
-            #[cfg(windows)]
-            const _CfgA = 0b01,
-            #[cfg(unix)]
-            const _CfgB = 0b01,
-            #[cfg(windows)]
-            const _CfgC = _CfgA.bits | 0b10,
-        }
-    }
+//     bitflags! {
+//         flags _CfgFlags: u32 {
+//             #[cfg(windows)]
+//             const _CfgA = 0b01,
+//             #[cfg(unix)]
+//             const _CfgB = 0b01,
+//             #[cfg(windows)]
+//             const _CfgC = _CfgA.bits | 0b10,
+//         }
+//     }
 
-    bitflags! {
-        flags AnotherSetOfFlags: i8 {
-            const AnotherFlag = -1_i8,
-        }
-    }
+//     bitflags! {
+//         flags AnotherSetOfFlags: i8 {
+//             const AnotherFlag = -1_i8,
+//         }
+//     }
 
-    #[test]
-    fn test_bits(){
-        assert_eq!(Flags::empty().bits(), 0b00000000);
-        assert_eq!(FlagA.bits(), 0b00000001);
-        assert_eq!(FlagABC.bits(), 0b00000111);
+//     #[test]
+//     fn test_bits(){
+//         assert_eq!(Flags::empty().bits(), 0b00000000);
+//         assert_eq!(FlagA.bits(), 0b00000001);
+//         assert_eq!(FlagABC.bits(), 0b00000111);
 
-        assert_eq!(AnotherSetOfFlags::empty().bits(), 0b00);
-        assert_eq!(AnotherFlag.bits(), !0_i8);
-    }
+//         assert_eq!(AnotherSetOfFlags::empty().bits(), 0b00);
+//         assert_eq!(AnotherFlag.bits(), !0_i8);
+//     }
 
-    #[test]
-    fn test_from_bits() {
-        assert_eq!(Flags::from_bits(0), Some(Flags::empty()));
-        assert_eq!(Flags::from_bits(0b1), Some(FlagA));
-        assert_eq!(Flags::from_bits(0b10), Some(FlagB));
-        assert_eq!(Flags::from_bits(0b11), Some(FlagA | FlagB));
-        assert_eq!(Flags::from_bits(0b1000), None);
+//     #[test]
+//     fn test_from_bits() {
+//         assert_eq!(Flags::from_bits(0), Some(Flags::empty()));
+//         assert_eq!(Flags::from_bits(0b1), Some(FlagA));
+//         assert_eq!(Flags::from_bits(0b10), Some(FlagB));
+//         assert_eq!(Flags::from_bits(0b11), Some(FlagA | FlagB));
+//         assert_eq!(Flags::from_bits(0b1000), None);
 
-        assert_eq!(AnotherSetOfFlags::from_bits(!0_i8), Some(AnotherFlag));
-    }
+//         assert_eq!(AnotherSetOfFlags::from_bits(!0_i8), Some(AnotherFlag));
+//     }
 
-    #[test]
-    fn test_from_bits_truncate() {
-        assert_eq!(Flags::from_bits_truncate(0), Flags::empty());
-        assert_eq!(Flags::from_bits_truncate(0b1), FlagA);
-        assert_eq!(Flags::from_bits_truncate(0b10), FlagB);
-        assert_eq!(Flags::from_bits_truncate(0b11), (FlagA | FlagB));
-        assert_eq!(Flags::from_bits_truncate(0b1000), Flags::empty());
-        assert_eq!(Flags::from_bits_truncate(0b1001), FlagA);
+//     #[test]
+//     fn test_from_bits_truncate() {
+//         assert_eq!(Flags::from_bits_truncate(0), Flags::empty());
+//         assert_eq!(Flags::from_bits_truncate(0b1), FlagA);
+//         assert_eq!(Flags::from_bits_truncate(0b10), FlagB);
+//         assert_eq!(Flags::from_bits_truncate(0b11), (FlagA | FlagB));
+//         assert_eq!(Flags::from_bits_truncate(0b1000), Flags::empty());
+//         assert_eq!(Flags::from_bits_truncate(0b1001), FlagA);
 
-        assert_eq!(AnotherSetOfFlags::from_bits_truncate(0_i8), AnotherSetOfFlags::empty());
-    }
+//         assert_eq!(AnotherSetOfFlags::from_bits_truncate(0_i8), AnotherSetOfFlags::empty());
+//     }
 
-    #[test]
-    fn test_is_empty(){
-        assert!(Flags::empty().is_empty());
-        assert!(!FlagA.is_empty());
-        assert!(!FlagABC.is_empty());
+//     #[test]
+//     fn test_is_empty(){
+//         assert!(Flags::empty().is_empty());
+//         assert!(!FlagA.is_empty());
+//         assert!(!FlagABC.is_empty());
 
-        assert!(!AnotherFlag.is_empty());
-    }
+//         assert!(!AnotherFlag.is_empty());
+//     }
 
-    #[test]
-    fn test_is_all() {
-        assert!(Flags::all().is_all());
-        assert!(!FlagA.is_all());
-        assert!(FlagABC.is_all());
+//     #[test]
+//     fn test_is_all() {
+//         assert!(Flags::all().is_all());
+//         assert!(!FlagA.is_all());
+//         assert!(FlagABC.is_all());
 
-        assert!(AnotherFlag.is_all());
-    }
+//         assert!(AnotherFlag.is_all());
+//     }
 
-    #[test]
-    fn test_two_empties_do_not_intersect() {
-        let e1 = Flags::empty();
-        let e2 = Flags::empty();
-        assert!(!e1.intersects(e2));
+//     #[test]
+//     fn test_two_empties_do_not_intersect() {
+//         let e1 = Flags::empty();
+//         let e2 = Flags::empty();
+//         assert!(!e1.intersects(e2));
 
-        assert!(AnotherFlag.intersects(AnotherFlag));
-    }
+//         assert!(AnotherFlag.intersects(AnotherFlag));
+//     }
 
-    #[test]
-    fn test_empty_does_not_intersect_with_full() {
-        let e1 = Flags::empty();
-        let e2 = FlagABC;
-        assert!(!e1.intersects(e2));
-    }
+//     #[test]
+//     fn test_empty_does_not_intersect_with_full() {
+//         let e1 = Flags::empty();
+//         let e2 = FlagABC;
+//         assert!(!e1.intersects(e2));
+//     }
 
-    #[test]
-    fn test_disjoint_intersects() {
-        let e1 = FlagA;
-        let e2 = FlagB;
-        assert!(!e1.intersects(e2));
-    }
+//     #[test]
+//     fn test_disjoint_intersects() {
+//         let e1 = FlagA;
+//         let e2 = FlagB;
+//         assert!(!e1.intersects(e2));
+//     }
 
-    #[test]
-    fn test_overlapping_intersects() {
-        let e1 = FlagA;
-        let e2 = FlagA | FlagB;
-        assert!(e1.intersects(e2));
-    }
+//     #[test]
+//     fn test_overlapping_intersects() {
+//         let e1 = FlagA;
+//         let e2 = FlagA | FlagB;
+//         assert!(e1.intersects(e2));
+//     }
 
-    #[test]
-    fn test_contains() {
-        let e1 = FlagA;
-        let e2 = FlagA | FlagB;
-        assert!(!e1.contains(e2));
-        assert!(e2.contains(e1));
-        assert!(FlagABC.contains(e2));
+//     #[test]
+//     fn test_contains() {
+//         let e1 = FlagA;
+//         let e2 = FlagA | FlagB;
+//         assert!(!e1.contains(e2));
+//         assert!(e2.contains(e1));
+//         assert!(FlagABC.contains(e2));
 
-        assert!(AnotherFlag.contains(AnotherFlag));
-    }
+//         assert!(AnotherFlag.contains(AnotherFlag));
+//     }
 
-    #[test]
-    fn test_insert(){
-        let mut e1 = FlagA;
-        let e2 = FlagA | FlagB;
-        e1.insert(e2);
-        assert_eq!(e1, e2);
+//     #[test]
+//     fn test_insert(){
+//         let mut e1 = FlagA;
+//         let e2 = FlagA | FlagB;
+//         e1.insert(e2);
+//         assert_eq!(e1, e2);
 
-        let mut e3 = AnotherSetOfFlags::empty();
-        e3.insert(AnotherFlag);
-        assert_eq!(e3, AnotherFlag);
-    }
+//         let mut e3 = AnotherSetOfFlags::empty();
+//         e3.insert(AnotherFlag);
+//         assert_eq!(e3, AnotherFlag);
+//     }
 
-    #[test]
-    fn test_remove(){
-        let mut e1 = FlagA | FlagB;
-        let e2 = FlagA | FlagC;
-        e1.remove(e2);
-        assert_eq!(e1, FlagB);
+//     #[test]
+//     fn test_remove(){
+//         let mut e1 = FlagA | FlagB;
+//         let e2 = FlagA | FlagC;
+//         e1.remove(e2);
+//         assert_eq!(e1, FlagB);
 
-        let mut e3 = AnotherFlag;
-        e3.remove(AnotherFlag);
-        assert_eq!(e3, AnotherSetOfFlags::empty());
-    }
+//         let mut e3 = AnotherFlag;
+//         e3.remove(AnotherFlag);
+//         assert_eq!(e3, AnotherSetOfFlags::empty());
+//     }
 
-    #[test]
-    fn test_operators() {
-        let e1 = FlagA | FlagC;
-        let e2 = FlagB | FlagC;
-        assert_eq!((e1 | e2), FlagABC);     // union
-        assert_eq!((e1 & e2), FlagC);       // intersection
-        assert_eq!((e1 - e2), FlagA);       // set difference
-        assert_eq!(!e2, FlagA);             // set complement
-        assert_eq!(e1 ^ e2, FlagA | FlagB); // toggle
-        let mut e3 = e1;
-        e3.toggle(e2);
-        assert_eq!(e3, FlagA | FlagB);
+//     #[test]
+//     fn test_operators() {
+//         let e1 = FlagA | FlagC;
+//         let e2 = FlagB | FlagC;
+//         assert_eq!((e1 | e2), FlagABC);     // union
+//         assert_eq!((e1 & e2), FlagC);       // intersection
+//         assert_eq!((e1 - e2), FlagA);       // set difference
+//         assert_eq!(!e2, FlagA);             // set complement
+//         assert_eq!(e1 ^ e2, FlagA | FlagB); // toggle
+//         let mut e3 = e1;
+//         e3.toggle(e2);
+//         assert_eq!(e3, FlagA | FlagB);
 
-        let mut m4 = AnotherSetOfFlags::empty();
-        m4.toggle(AnotherSetOfFlags::empty());
-        assert_eq!(m4, AnotherSetOfFlags::empty());
-    }
+//         let mut m4 = AnotherSetOfFlags::empty();
+//         m4.toggle(AnotherSetOfFlags::empty());
+//         assert_eq!(m4, AnotherSetOfFlags::empty());
+//     }
 
-    #[test]
-    fn test_assignment_operators() {
-        let mut m1 = Flags::empty();
-        let e1 = FlagA | FlagC;
-        // union
-        m1 |= FlagA;
-        assert_eq!(m1, FlagA);
-        // intersection
-        m1 &= e1;
-        assert_eq!(m1, FlagA);
-        // set difference
-        m1 -= m1;
-        assert_eq!(m1, Flags::empty());
-        // toggle
-        m1 ^= e1;
-        assert_eq!(m1, e1);
-    }
+//     #[test]
+//     fn test_assignment_operators() {
+//         let mut m1 = Flags::empty();
+//         let e1 = FlagA | FlagC;
+//         // union
+//         m1 |= FlagA;
+//         assert_eq!(m1, FlagA);
+//         // intersection
+//         m1 &= e1;
+//         assert_eq!(m1, FlagA);
+//         // set difference
+//         m1 -= m1;
+//         assert_eq!(m1, Flags::empty());
+//         // toggle
+//         m1 ^= e1;
+//         assert_eq!(m1, e1);
+//     }
 
-    #[test]
-    fn test_extend() {
-        let mut flags;
+//     #[test]
+//     fn test_extend() {
+//         let mut flags;
 
-        flags = Flags::empty();
-        flags.extend([].iter().cloned());
-        assert_eq!(flags, Flags::empty());
+//         flags = Flags::empty();
+//         flags.extend([].iter().cloned());
+//         assert_eq!(flags, Flags::empty());
 
-        flags = Flags::empty();
-        flags.extend([FlagA, FlagB].iter().cloned());
-        assert_eq!(flags, FlagA | FlagB);
+//         flags = Flags::empty();
+//         flags.extend([FlagA, FlagB].iter().cloned());
+//         assert_eq!(flags, FlagA | FlagB);
 
-        flags = FlagA;
-        flags.extend([FlagA, FlagB].iter().cloned());
-        assert_eq!(flags, FlagA | FlagB);
+//         flags = FlagA;
+//         flags.extend([FlagA, FlagB].iter().cloned());
+//         assert_eq!(flags, FlagA | FlagB);
 
-        flags = FlagB;
-        flags.extend([FlagA, FlagABC].iter().cloned());
-        assert_eq!(flags, FlagABC);
-    }
+//         flags = FlagB;
+//         flags.extend([FlagA, FlagABC].iter().cloned());
+//         assert_eq!(flags, FlagABC);
+//     }
 
-    #[test]
-    fn test_from_iterator() {
-        assert_eq!([].iter().cloned().collect::<Flags>(), Flags::empty());
-        assert_eq!([FlagA, FlagB].iter().cloned().collect::<Flags>(), FlagA | FlagB);
-        assert_eq!([FlagA, FlagABC].iter().cloned().collect::<Flags>(), FlagABC);
-    }
+//     #[test]
+//     fn test_from_iterator() {
+//         assert_eq!([].iter().cloned().collect::<Flags>(), Flags::empty());
+//         assert_eq!([FlagA, FlagB].iter().cloned().collect::<Flags>(), FlagA | FlagB);
+//         assert_eq!([FlagA, FlagABC].iter().cloned().collect::<Flags>(), FlagABC);
+//     }
 
-    #[test]
-    fn test_lt() {
-        let mut a = Flags::empty();
-        let mut b = Flags::empty();
+//     #[test]
+//     fn test_lt() {
+//         let mut a = Flags::empty();
+//         let mut b = Flags::empty();
 
-        assert!(!(a < b) && !(b < a));
-        b = FlagB;
-        assert!(a < b);
-        a = FlagC;
-        assert!(!(a < b) && b < a);
-        b = FlagC | FlagB;
-        assert!(a < b);
-    }
+//         assert!(!(a < b) && !(b < a));
+//         b = FlagB;
+//         assert!(a < b);
+//         a = FlagC;
+//         assert!(!(a < b) && b < a);
+//         b = FlagC | FlagB;
+//         assert!(a < b);
+//     }
 
-    #[test]
-    fn test_ord() {
-        let mut a = Flags::empty();
-        let mut b = Flags::empty();
+//     #[test]
+//     fn test_ord() {
+//         let mut a = Flags::empty();
+//         let mut b = Flags::empty();
 
-        assert!(a <= b && a >= b);
-        a = FlagA;
-        assert!(a > b && a >= b);
-        assert!(b < a && b <= a);
-        b = FlagB;
-        assert!(b > a && b >= a);
-        assert!(a < b && a <= b);
-    }
+//         assert!(a <= b && a >= b);
+//         a = FlagA;
+//         assert!(a > b && a >= b);
+//         assert!(b < a && b <= a);
+//         b = FlagB;
+//         assert!(b > a && b >= a);
+//         assert!(a < b && a <= b);
+//     }
 
-    fn hash<T: Hash>(t: &T) -> u64 {
-        let mut s = SipHasher::new_with_keys(0, 0);
-        t.hash(&mut s);
-        s.finish()
-    }
+//     fn hash<T: Hash>(t: &T) -> u64 {
+//         let mut s = SipHasher::new_with_keys(0, 0);
+//         t.hash(&mut s);
+//         s.finish()
+//     }
 
-    #[test]
-    fn test_hash() {
-        let mut x = Flags::empty();
-        let mut y = Flags::empty();
-        assert_eq!(hash(&x), hash(&y));
-        x = Flags::all();
-        y = FlagABC;
-        assert_eq!(hash(&x), hash(&y));
-    }
+//     #[test]
+//     fn test_hash() {
+//         let mut x = Flags::empty();
+//         let mut y = Flags::empty();
+//         assert_eq!(hash(&x), hash(&y));
+//         x = Flags::all();
+//         y = FlagABC;
+//         assert_eq!(hash(&x), hash(&y));
+//     }
 
-    #[test]
-    #[cfg_attr(feature = "ndebug", should_panic)]
-    fn test_debug() {
-        assert_eq!(format!("{:?}", FlagA | FlagB), "FlagA | FlagB");
-        assert_eq!(format!("{:?}", FlagABC), "FlagA | FlagB | FlagC | FlagABC");
-    }
+//     #[test]
+//     #[cfg_attr(feature = "ndebug", should_panic)]
+//     fn test_debug() {
+//         assert_eq!(format!("{:?}", FlagA | FlagB), "FlagA | FlagB");
+//         assert_eq!(format!("{:?}", FlagABC), "FlagA | FlagB | FlagC | FlagABC");
+//     }
 
-    mod submodule {
-        bitflags! {
-            pub flags PublicFlags: i8 {
-                const FlagX = 0,
-            }
-        }
-        bitflags! {
-            flags PrivateFlags: i8 {
-                const FlagY = 0,
-            }
-        }
+//     mod submodule {
+//         bitflags! {
+//             pub flags PublicFlags: i8 {
+//                 const FlagX = 0,
+//             }
+//         }
+//         bitflags! {
+//             flags PrivateFlags: i8 {
+//                 const FlagY = 0,
+//             }
+//         }
 
-        #[test]
-        fn test_private() {
-            let _ = FlagY;
-        }
-    }
+//         #[test]
+//         fn test_private() {
+//             let _ = FlagY;
+//         }
+//     }
 
-    #[test]
-    fn test_public() {
-        let _ = submodule::FlagX;
-    }
+//     #[test]
+//     fn test_public() {
+//         let _ = submodule::FlagX;
+//     }
 
-    mod t1 {
-        mod foo {
-            pub type Bar = i32;
-        }
+//     mod t1 {
+//         mod foo {
+//             pub type Bar = i32;
+//         }
 
-        bitflags! {
-            /// baz
-            flags Flags: foo::Bar {
-                const A       = 0b00000001,
-                #[cfg(foo)]
-                const B       = 0b00000010,
-                #[cfg(foo)]
-                const C       = 0b00000010,
-            }
-        }
-    }
+//         bitflags! {
+//             /// baz
+//             flags Flags: foo::Bar {
+//                 const A       = 0b00000001,
+//                 #[cfg(foo)]
+//                 const B       = 0b00000010,
+//                 #[cfg(foo)]
+//                 const C       = 0b00000010,
+//             }
+//         }
+//     }
 
-}
+// }

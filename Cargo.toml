@@ -11,16 +11,11 @@ publish = false
 
 [features]
 # By default the crate builds as no_std.
-default = []
-
-# Skip fmt::Debug implementations and logging that requires fmt::Debug.
-ndebug = []
+default = ["all"]
 
 # Skip all logging.
 nlog = ["log/max_level_off"]
 
-# Compile without no_std.
-use_std = []
 
 # Calculate CRC_A on host rather than on PCD.
 host_crc = []
@@ -29,17 +24,16 @@ host_crc = []
 # This is disabled by default to save memory on
 # embedded systems.
 self_test = []
+i2cdev=[]
+spidev=[]
 
 # Meta-feature enabling everything, not bus-related.
-all = ["host_crc", "self_test", "use_std"]
+all = ["host_crc", "self_test", "i2cdev"]
 
 [dependencies]
-log = "~0.3.4"
-i2cdev = { version = "~0.3.0", optional = true }
-spidev = { version = "~0.2.1", optional = true }
+log = "0.4.17"
+embedded-hal = "0.2.7"
 
-[dev-dependencies]
-env_logger = "~0.3.4"
 
 #[[example]]
 #name = "bus_i2cdev"
