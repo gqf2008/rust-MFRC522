@@ -11,7 +11,7 @@ publish = false
 
 [features]
 # By default the crate builds as no_std.
-default = ["all"]
+default = ["host_crc", "self_test", "i2cdev"]
 
 # Skip all logging.
 nlog = ["log/max_level_off"]
@@ -27,8 +27,6 @@ self_test = []
 i2cdev=[]
 spidev=[]
 
-# Meta-feature enabling everything, not bus-related.
-all = ["host_crc", "self_test", "i2cdev"]
 
 [dependencies]
 log = "0.4.17"
