@@ -57,7 +57,7 @@ impl<'a> MFRC522<'a> {
     pub fn init(bus: &'a mut dyn MFRC522Bus) -> Result<Self, Status> {
         let mut mfrc522 = Self::uninitialized(bus);
         try_bus!(mfrc522.pcd_soft_reset());
-        try!(mfrc522.pcd_init());
+        mfrc522.pcd_init()?;
 
         Ok(mfrc522)
     }
@@ -114,7 +114,7 @@ impl<'a> MFRC522<'a> {
      **/
     #[inline]
     pub fn reg_error(&mut self) -> bus::Result<ErrorBits> {
-        let bits = try!(self.register_read(Reg::Error));
+        let bits = self.register_read(Reg::Error)?;
 
         Ok(ErrorBits::from_bits_truncate(bits))
     }
@@ -126,7 +126,7 @@ impl<'a> MFRC522<'a> {
      **/
     #[inline]
     pub fn reg_comirq(&mut self) -> bus::Result<ComIrqBits> {
-        let bits = try!(self.register_read(Reg::ComIrq));
+        let bits = self.register_read(Reg::ComIrq)?;
 
         Ok(ComIrqBits::from_bits_truncate(bits))
     }
@@ -138,7 +138,7 @@ impl<'a> MFRC522<'a> {
      **/
     #[inline]
     pub fn reg_divirq(&mut self) -> bus::Result<DivIrqBits> {
-        let bits = try!(self.register_read(Reg::DivIrq));
+        let bits = self.register_read(Reg::DivIrq)?;
 
         Ok(DivIrqBits::from_bits_truncate(bits))
     }
@@ -234,7 +234,7 @@ impl<'a> MFRC522<'a> {
         let mut cmd_buffer: [u8; 18] = [0; 18];
         cmd_buffer[..data.len()].copy_from_slice(data);
 
-        let mut tx_buffer = &mut cmd_buffer[..data.len() + 2];
+        let tx_buffer = &mut cmd_buffer[..data.len() + 2];
         let mut rx_buffer: [u8; 1] = [0];
 
         let crc_status = self.crc_append(tx_buffer);
@@ -896,9 +896,9 @@ impl<'a> MFRC522<'a> {
      **/
     #[inline]
     pub fn register_set_bit_mask(&mut self, reg: Reg, mask: u8) -> bus::Result<()> {
-        let current = try!(self.register_read(reg));
+        let current = self.register_read(reg)?;
         if (current & mask) != mask {
-            try!(self.register_write(reg, current | mask));
+            self.register_write(reg, current | mask)?;
         }
 
         Ok(())
@@ -909,11 +909,10 @@ impl<'a> MFRC522<'a> {
      **/
     #[inline]
     pub fn register_clear_bit_mask(&mut self, reg: Reg, mask: u8) -> bus::Result<()> {
-        let current = try!(self.register_read(reg));
+        let current = self.register_read(reg)?;
         if (current & mask) != 0x00 {
-            try!(self.register_write(reg, current & !mask));
+            self.register_write(reg, current & !mask)?;
         }
-
         Ok(())
     }
 

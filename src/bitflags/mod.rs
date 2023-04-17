@@ -247,10 +247,10 @@ macro_rules! bitflags {
                             // $Flag.bits == 0 means that $Flag doesn't exist
                             if $Flag.bits != 0 && self_ & $Flag.bits as u64 == $Flag.bits as u64 {
                                 if !first {
-                                    try!(f.write_str(" | "));
+                                    f.write_str(" | ")?;
                                 }
                                 first = false;
-                                try!(f.write_str(stringify!($Flag)));
+                                f.write_str(stringify!($Flag))?;
                             }
                         )+
                         Ok(())
